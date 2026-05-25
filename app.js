@@ -25,46 +25,6 @@ const entriesList = document.getElementById('entries-list');
 const generateQrBtn = document.getElementById('generate-qr-btn');
 const qrContainer = document.getElementById("qrcode");
 
-function bufferToBase64(buf) {
-    return btoa(String.fromCharCode(...new Uint8Array(buf)));
-}
-
-function base64ToBuffer(base64) {
-    return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-}
-
-async function deriveKey(password, salt) {
-    const enc = new TextEncoder();
-    const baseKey = await crypto.subtle.importKey(
-        "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
-    );
-    return crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
-        baseKey, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
-    );
-}
-
-async function encryptVault(key, text) {
-    const enc = new TextEncoder();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await crypto.subtle.encrypt(
-        { name: "AES-GCM", iv: iv }, key, enc.encode(text)
-    );
-    return {
-        iv: bufferToBase64(iv),
-        ciphertext: bufferToBase64(ciphertext)
-    };
-}
-
-async function decryptVault(key, ivStr, cipherStr) {
-    const iv = base64ToBuffer(ivStr);
-    const ciphertext = base64ToBuffer(cipherStr);
-    const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: iv }, key, ciphertext
-    );
-    return new TextDecoder().decode(decrypted);
-}
-
 async function startSync() {
     const docRef = doc(db, "vaults", "dominikax");
     onSnapshot(docRef, (doc) => {
@@ -79,11 +39,11 @@ async function processVaultData(vaultString) {
     if (!vaultString || !currentKey) return;
     try {
         const parts = vaultString.split("|");
-        const decryptedJsonString = await decryptVault(currentKey, parts[1], parts[2]);
+        const decryptedJsonString = await window.decryptVault(currentKey, parts[1], parts[2]);
         decryptedVault = JSON.parse(decryptedJsonString);
         renderEntries();
     } catch (e) {
-        console.error("Błąd dekodowania:", e);
+        console.error("Błąd dekodowania danych z Firebase:", e);
     }
 }
 
@@ -91,7 +51,7 @@ async function saveVault() {
     if (!currentKey) return;
     try {
         const vaultText = JSON.stringify(decryptedVault);
-        const encrypted = await encryptVault(currentKey, vaultText);
+        const encrypted = await window.encryptVault(currentKey, vaultText);
         const salt = localStorage.getItem("pm_salt");
         const vaultString = `${salt}|${encrypted.iv}|${encrypted.ciphertext}`;
         await setDoc(doc(db, "vaults", "dominikax"), { vault: vaultString });
@@ -107,20 +67,20 @@ authForm.addEventListener("submit", async (e) => {
         let salt = localStorage.getItem("pm_salt");
         if (!salt) {
             const s = crypto.getRandomValues(new Uint8Array(16));
-            salt = bufferToBase64(s);
+            salt = window.bufferToBase64(s);
             localStorage.setItem("pm_salt", salt);
-            currentKey = await deriveKey(password, s);
+            currentKey = await window.deriveKey(password, s);
             decryptedVault = [];
             await saveVault();
         } else {
-            currentKey = await deriveKey(password, base64ToBuffer(salt));
+            currentKey = await window.deriveKey(password, window.base64ToBuffer(salt));
         }
         authSection.classList.add("hidden");
         vaultSection.classList.remove("hidden");
-        startSync();
+        await startSync();
     } catch (err) { 
         console.error(err);
-        alert("Błąd logowania"); 
+        alert("Błąd logowania. Sprawdź poprawność hasła."); 
     }
 });
 
@@ -157,7 +117,7 @@ generateQrBtn?.addEventListener("click", async () => {
     qrContainer.classList.add("qr-fullscreen");
     try {
         const vaultText = JSON.stringify(decryptedVault);
-        const encrypted = await encryptVault(currentKey, vaultText);
+        const encrypted = await window.encryptVault(currentKey, vaultText);
         let salt = localStorage.getItem("pm_salt");
         const qrData = `${salt}|${encrypted.iv}|${encrypted.ciphertext}`;
 

@@ -1,13 +1,9 @@
-// crypto.js - Obsługa bezpieczeństwa i Web Crypto API
-
 const CRYPTO_CONFIG = {
     iterations: 100000,
     hash: 'SHA-256',
     length: 256
 };
 
-// --- BEZPIECZNE KONWERTERY ---
-// Używamy btoa i atob na tablicach bajtów, aby uniknąć problemów z kodowaniem znaków
 function bufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
     let binary = '';
@@ -25,8 +21,6 @@ function base64ToBuffer(base64) {
     }
     return bytes.buffer;
 }
-
-// --- LOGIKA KRYPTOGRAFICZNA ---
 
 async function deriveKey(masterPassword, saltBuffer) {
     const encoder = new TextEncoder();
@@ -54,9 +48,7 @@ async function deriveKey(masterPassword, saltBuffer) {
 
 async function encryptVault(key, vaultText) {
     const encoder = new TextEncoder();
-    // Kodujemy surowy tekst, który przekazujesz (np. wynik JSON.stringify)
     const dataBuffer = encoder.encode(vaultText); 
-    
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
     const encryptedContent = await window.crypto.subtle.encrypt(
@@ -82,9 +74,14 @@ async function decryptVault(key, ivBase64, ciphertextBase64) {
             ciphertext
         );
         const decoder = new TextDecoder();
-        // Zwracamy surowy tekst – to `app.js` zdecyduje, czy zrobić z niego JSON.parse
         return decoder.decode(decryptedContent);
     } catch (e) {
         throw new Error("Nieprawidłowe hasło główne lub uszkodzone dane.");
     }
 }
+
+window.bufferToBase64 = bufferToBase64;
+window.base64ToBuffer = base64ToBuffer;
+window.deriveKey = deriveKey;
+window.encryptVault = encryptVault;
+window.decryptVault = decryptVault;
