@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bezpieczny Menedżer Haseł</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div id="aria-live-region" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+    <header>
+        <h1>Menedżer Haseł</h1>
+    </header>
+
+    <main>
+        <div id="accessibility-controls" style="margin-bottom: 20px; padding: 10px; background: #eef4fa; border-radius: 4px;">
+            <label for="toggle-voice">
+                <input type="checkbox" id="toggle-voice" checked>
+                Włącz lektora (czytanie po najechaniu i tabowaniu)
+            </label>
+
+            <label for="theme-select" style="display: flex; align-items: center; gap: 10px;">
+                Wygląd strony:
+                <select id="theme-select">
+                    <option value="default">Domyślny (Jasny)</option>
+                    <option value="dark">Tryb ciemny (Dark mode)</option>
+                    <option value="high-contrast">Wysoki kontrast (Żółty na czarnym)</option>
+                </select>
+            </label>
+        </div>
+
+        <section id="auth-section" aria-labelledby="auth-heading">
+            <h2 id="auth-heading">Dostęp do bazy haseł</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="master-password">Hasło główne:</label>
+                    <input type="password" id="master-password" required aria-required="true" aria-describedby="auth-hint">
+                    <span id="auth-hint" class="sr-only">Wpisz hasło główne, aby odszyfrować lub utworzyć nową bazę haseł.</span>
+                </div>
+                <button type="submit" id="login-btn">Odblokuj / Utwórz</button>
+            </form>
+            <div id="auth-error" role="alert" class="error-msg hidden"></div>
+        </section>
+
+        <section id="vault-section" class="hidden" aria-labelledby="vault-heading">
+            <h2 id="vault-heading">Twój sejf haseł</h2>
+            <button id="logout-btn">Zablokuj sejf (Wyloguj)</button>
+
+            <form id="add-entry-form" aria-labelledby="add-entry-heading">
+                <h3 id="add-entry-heading">Dodaj nowe hasło</h3>
+                <div class="form-group">
+                    <label for="entry-name">Nazwa usługi (np. Facebook):</label>
+                    <input type="text" id="entry-name" required aria-required="true">
+                </div>
+                <div class="form-group">
+    <label for="entry-url">Adres strony:</label>
+    <input type="text" id="entry-url" placeholder="np. facebook.com">
+</div>
+                <div class="form-group">
+                    <label for="entry-login">Login / E-mail:</label>
+                    <input type="text" id="entry-login" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="entry-password">Hasło:</label>
+                    <input type="password" id="entry-password" required aria-required="true">
+                </div>
+                <button type="submit">Zapisz do sejfu</button>
+            </form>
+
+            <div id="entries-container" role="region" aria-label="Zapisane hasła">
+                <h3>Zapisane hasła:</h3>
+                <ul id="entries-list" aria-live="polite"></ul>
+            </div>
+
+            <div id="export-section">
+                <h3>Eksport zaszyfrowanej bazy (QR)</h3>
+                <p id="qr-desc">Zeskanuj poniższy kod w aplikacji mobilnej, aby przenieść zaszyfrowaną bazę. Do odszyfrowania na telefonie wymagane będzie Twoje hasło główne.</p>
+                <button id="generate-qr-btn" aria-describedby="qr-desc">Generuj kod QR</button>
+                <div id="qrcode" aria-label="Wygenerowany kod QR" role="img" tabindex="0"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="crypto.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
