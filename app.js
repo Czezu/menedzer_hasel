@@ -133,7 +133,6 @@ async function saveVault() {
     }
 }
 
-// --- OBSŁUGA FORMULARZA AUTORYZACJI Z WALIDACJĄ ---
 authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     authError.classList.add('hidden');
@@ -142,7 +141,6 @@ authForm.addEventListener("submit", async (e) => {
     const authPassword = authPasswordInput.value;
     const masterPassword = masterPasswordInput.value;
 
-    // WALIDACJA: Jeśli master-password jest puste (lub za krótkie), przerywamy
     if (masterPassword.length < 8) {
         authError.textContent = "Hasło główne musi mieć co najmniej 8 znaków!";
         authError.classList.remove('hidden');
@@ -203,7 +201,7 @@ logoutBtn.addEventListener("click", () => {
     signOut(auth).then(() => {
         localStorage.removeItem("pm_salt");
         speak("Sejf został zablokowany i zamknięty.");
-        location.reload(); // Wymuszamy reset stanu aplikacji
+        location.reload(); 
     });
 });
 
