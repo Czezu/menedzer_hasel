@@ -161,7 +161,6 @@ body.theme-high-contrast .btn-secondary {
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
-/* --- TRYB CIEMNY --- */
 body.theme-dark {
     background-color: #2b2a2a !important;
     color: #e0e0e0 !important;
