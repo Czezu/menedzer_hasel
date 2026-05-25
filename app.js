@@ -17,7 +17,6 @@ const firebaseConfig = {
     appId: "1:96208279949:web:a488493b8156c711a845c4"
 };
 
-// Inicjalizacja struktur Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -27,7 +26,6 @@ let decryptedVault = [];
 let isLoginMode = true;
 let unsubscribeSync = null;
 
-// Elementy DOM DOM
 const authSection = document.getElementById('auth-section');
 const vaultSection = document.getElementById('vault-section');
 const authForm = document.getElementById('auth-form');
@@ -48,7 +46,6 @@ const qrContainer = document.getElementById("qrcode");
 const toggleVoice = document.getElementById('toggle-voice');
 const themeSelect = document.getElementById('theme-select');
 
-// --- LEKTOR SPEECH SYNTHESIS ---
 function speak(text) {
     if (!toggleVoice || !toggleVoice.checked) return;
     window.speechSynthesis.cancel();
@@ -57,7 +54,6 @@ function speak(text) {
     window.speechSynthesis.speak(utterance);
 }
 
-// Mapowanie najechania myszką oraz tabowania
 function setupAccessibilityListeners() {
     const targets = document.querySelectorAll('h1, h2, h3, label, p, button, input, select');
     targets.forEach(el => {
@@ -72,14 +68,12 @@ function setupAccessibilityListeners() {
 }
 setupAccessibilityListeners();
 
-// --- ZARZĄDZANIE MOTYWAMI ---
 themeSelect?.addEventListener('change', (e) => {
     document.body.className = '';
     if (e.target.value === 'dark') document.body.classList.add('theme-dark');
     if (e.target.value === 'high-contrast') document.body.classList.add('theme-high-contrast');
 });
 
-// --- PRZEŁĄCZANIE TRYBU LOGOWANIA / REJESTRACJI ---
 switchAuthModeBtn?.addEventListener('click', () => {
     isLoginMode = !isLoginMode;
     authError.classList.add('hidden');
@@ -95,11 +89,8 @@ switchAuthModeBtn?.addEventListener('click', () => {
     speak(authHeading.textContent);
 });
 
-// --- SYNCHRONIZACJA W CZASIE RZECZYWISTYM (ZMIANA NA USER.UID) ---
 function startSync(user) {
     if (unsubscribeSync) unsubscribeSync();
-    
-    // Dynamiczny odczyt folderu pod UID usera
     const docRef = doc(db, "vaults", user.uid);
     unsubscribeSync = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -136,15 +127,13 @@ async function saveVault() {
         const encrypted = await window.encryptVault(currentKey, vaultText);
         const salt = localStorage.getItem("pm_salt");
         const vaultString = `${salt}|${encrypted.iv}|${encrypted.ciphertext}`;
-        
-        // Zapis w kolekcji chmurowej powiązanej z UID
         await setDoc(doc(db, "vaults", user.uid), { vault: vaultString });
     } catch (e) {
         console.error("Błąd zapisu chmury:", e);
     }
 }
 
-// --- OBSŁUGA FORMULARZA AUTORYZACJI ---
+// --- OBSŁUGA FORMULARZA AUTORYZACJI Z WALIDACJĄ ---
 authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     authError.classList.add('hidden');
@@ -152,6 +141,14 @@ authForm.addEventListener("submit", async (e) => {
     const email = emailInput.value.trim();
     const authPassword = authPasswordInput.value;
     const masterPassword = masterPasswordInput.value;
+
+    // WALIDACJA: Jeśli master-password jest puste (lub za krótkie), przerywamy
+    if (masterPassword.length < 8) {
+        authError.textContent = "Hasło główne musi mieć co najmniej 8 znaków!";
+        authError.classList.remove('hidden');
+        speak("Hasło główne jest za krótkie.");
+        return; 
+    }
 
     try {
         let userCredential;
@@ -165,7 +162,6 @@ authForm.addEventListener("submit", async (e) => {
 
         const user = userCredential.user;
 
-        // Kryptografia klucza głównego
         let salt = localStorage.getItem("pm_salt");
         if (!salt) {
             const s = crypto.getRandomValues(new Uint8Array(16));
@@ -190,7 +186,6 @@ authForm.addEventListener("submit", async (e) => {
     }
 });
 
-// --- OBSŁUGA STANU ZALOGOWANIA ---
 onAuthStateChanged(auth, (user) => {
     if (user && currentKey) {
         authSection.classList.add("hidden");
@@ -204,15 +199,14 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Wylogowanie
 logoutBtn.addEventListener("click", () => {
     signOut(auth).then(() => {
-        localStorage.removeItem("pm_salt"); // Resetujemy lokalny salt, by wymusić nową derywację przy zmianie konta
+        localStorage.removeItem("pm_salt");
         speak("Sejf został zablokowany i zamknięty.");
+        location.reload(); // Wymuszamy reset stanu aplikacji
     });
 });
 
-// --- DODAWANIE WPISÓW ---
 addEntryForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     decryptedVault.push({
@@ -223,43 +217,36 @@ addEntryForm.addEventListener("submit", async (e) => {
     });
     await saveVault();
     speak("Nowe hasło zostało pomyślnie zapisane do sejfu.");
-    
     document.getElementById("entry-name").value = "";
     document.getElementById("entry-login").value = "";
     document.getElementById("entry-password").value = "";
     document.getElementById("entry-url").value = "";
 });
 
-// --- REDNEROWANIE LISTY Z CZYSZCZENIEM SCHOWKA ---
 function renderEntries() {
     entriesList.innerHTML = "";
     decryptedVault.forEach((entry) => {
         const li = document.createElement("li");
         li.innerHTML = `<div><b>${entry.name}</b><br>Login: ${entry.login}</div>`;
-        
         const b1 = document.createElement("button");
         b1.textContent = "Hasło";
-        
         b1.onclick = () => {
             navigator.clipboard.writeText(entry.password);
             b1.textContent = "Skopiowano!";
             b1.style.background = "#16a34a";
-            speak("Skopiowano hasło użytkownika do schowka systemowego. Zniknie za 30 sekund.");
-            
+            speak("Skopiowano hasło.");
             setTimeout(() => {
                 navigator.clipboard.writeText(""); 
                 b1.textContent = "Hasło";
                 b1.style.background = "";
             }, 30000);
         };
-        
         li.appendChild(b1);
         entriesList.appendChild(li);
     });
     setupAccessibilityListeners(); 
 }
 
-// --- GENERATOR SILNYCH HASEŁ ---
 const lengthSlider = document.getElementById('password-length');
 const lengthVal = document.getElementById('length-val');
 const generateBtn = document.getElementById('generate-secure-password-btn');
@@ -272,23 +259,19 @@ generateBtn?.addEventListener('click', () => {
     const length = parseInt(lengthSlider.value);
     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
     let password = "";
-    
     const randomValues = new Uint32Array(length);
     window.crypto.getRandomValues(randomValues);
-    
     for (let i = 0; i < length; i++) {
         password += charset[randomValues[i] % charset.length];
     }
-    
     const passwordInput = document.getElementById('entry-password');
     if (passwordInput) {
         passwordInput.value = password;
         passwordInput.type = "text"; 
-        speak(`Wygenerowano bezpieczne hasło o długości ${length} znaków.`);
+        speak(`Wygenerowano bezpieczne hasło.`);
     }
 });
 
-// --- KOD QR ---
 generateQrBtn?.addEventListener("click", async () => {
     if (!qrContainer || !currentKey) return;
     qrContainer.innerHTML = "";
@@ -298,16 +281,9 @@ generateQrBtn?.addEventListener("click", async () => {
         const encrypted = await window.encryptVault(currentKey, vaultText);
         let salt = localStorage.getItem("pm_salt");
         const qrData = `${salt}|${encrypted.iv}|${encrypted.ciphertext}`;
-
         new QRCode(qrContainer, {
-            text: qrData,
-            width: 350,
-            height: 350,
-            colorDark: "#000",
-            colorLight: "#fff",
-            correctLevel: QRCode.CorrectLevel.H
+            text: qrData, width: 350, height: 350, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.H
         });
-
         const closeBtn = document.createElement("button");
         closeBtn.textContent = "Zamknij QR";
         closeBtn.className = "close-qr-btn";
@@ -316,7 +292,7 @@ generateQrBtn?.addEventListener("click", async () => {
             qrContainer.innerHTML = "";
         };
         qrContainer.appendChild(closeBtn);
-        speak("Wygenerowano kod QR bazy na pełnym ekranie.");
+        speak("Wygenerowano kod QR.");
     } catch (e) {
         console.error("QR ERROR:", e);
     }
