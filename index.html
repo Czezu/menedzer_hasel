@@ -11,11 +11,11 @@
     <div id="aria-live-region" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
     <header>
-        <h1>Menedżer Haseł</h1>
+        <h1 tabindex="0">Menedżer Haseł</h1>
     </header>
 
     <main>
-        <div id="accessibility-controls" style="margin-bottom: 20px; padding: 10px; background: #eef4fa; border-radius: 4px;">
+        <div id="accessibility-controls">
             <label for="toggle-voice">
                 <input type="checkbox" id="toggle-voice" checked>
                 Włącz lektora (czytanie po najechaniu i tabowaniu)
@@ -32,14 +32,23 @@
         </div>
 
         <section id="auth-section" aria-labelledby="auth-heading">
-            <h2 id="auth-heading">Dostęp do bazy haseł</h2>
+            <h2 id="auth-heading">Logowanie do Sejfu</h2>
             <form id="auth-form">
                 <div class="form-group">
-                    <label for="master-password">Hasło główne:</label>
-                    <input type="password" id="master-password" required aria-required="true" aria-describedby="auth-hint">
-                    <span id="auth-hint" class="sr-only">Wpisz hasło główne, aby odszyfrować lub utworzyć nową bazę haseł.</span>
+                    <label for="auth-email">Adres e-mail:</label>
+                    <input type="email" id="auth-email" required aria-required="true">
                 </div>
-                <button type="submit" id="login-btn">Odblokuj / Utwórz</button>
+                <div class="form-group">
+                    <label for="auth-password">Hasło do konta chmury:</label>
+                    <input type="password" id="auth-password" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="master-password">Hasło główne (Szyfrujące):</label>
+                    <input type="password" id="master-password" required aria-required="true" aria-describedby="auth-hint">
+                    <span id="auth-hint" class="info-text">Wpisz hasło główne, aby odszyfrować lub utworzyć nową bazę haseł.</span>
+                </div>
+                <button type="submit" id="login-btn">Zaloguj i odblokuj</button>
+                <button type="button" id="switch-auth-mode-btn" class="btn-secondary">Chcę założyć nowe konto</button>
             </form>
             <div id="auth-error" role="alert" class="error-msg hidden"></div>
         </section>
@@ -48,6 +57,15 @@
             <h2 id="vault-heading">Twój sejf haseł</h2>
             <button id="logout-btn">Zablokuj sejf (Wyloguj)</button>
 
+            <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 4px; margin-top: 15px; margin-bottom: 15px;">
+                <label><b>Generator haseł:</b></label>
+                <div style="display: flex; align-items: center; gap: 10px; margin: 5px 0;">
+                    <input type="range" id="password-length" min="8" max="32" value="16">
+                    <span id="length-val">16 znaków</span>
+                </div>
+                <button type="button" id="generate-secure-password-btn" style="background: #2563eb; font-size: 13px; padding: 5px 10px;">Losuj silne hasło</button>
+            </div>
+
             <form id="add-entry-form" aria-labelledby="add-entry-heading">
                 <h3 id="add-entry-heading">Dodaj nowe hasło</h3>
                 <div class="form-group">
@@ -55,9 +73,9 @@
                     <input type="text" id="entry-name" required aria-required="true">
                 </div>
                 <div class="form-group">
-    <label for="entry-url">Adres strony:</label>
-    <input type="text" id="entry-url" placeholder="np. facebook.com">
-</div>
+                    <label for="entry-url">Adres strony:</label>
+                    <input type="text" id="entry-url" placeholder="np. facebook.com">
+                </div>
                 <div class="form-group">
                     <label for="entry-login">Login / E-mail:</label>
                     <input type="text" id="entry-login" required aria-required="true">
@@ -84,5 +102,6 @@
     </main>
 
     <script src="crypto.js"></script>
-<script type="module" src="app.js"></script></body>
+    <script type="module" src="app.js"></script>
+</body>
 </html>

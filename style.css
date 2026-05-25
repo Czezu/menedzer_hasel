@@ -42,6 +42,20 @@ h1, h2, h3 { color: var(--primary-color); }
     border: 0;
 }
 
+.info-text {
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+}
+
+body.theme-dark .info-text {
+    color: #bbb;
+}
+
+body.theme-high-contrast .info-text {
+    color: #ffff00;
+}
+
 *:focus {
     outline: 3px solid var(--focus-color);
     outline-offset: 2px;
@@ -78,10 +92,36 @@ button {
 
 button:hover { background-color: #004499; }
 
+.btn-secondary {
+    background-color: transparent !important;
+    color: var(--primary-color) !important;
+    border: 1px solid var(--primary-color) !important;
+}
+
+body.theme-dark .btn-secondary {
+    color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+}
+
+body.theme-high-contrast .btn-secondary {
+    color: #ffff00 !important;
+    border: 3px solid #ffff00 !important;
+}
+
 .error-msg {
     color: var(--error-color);
     font-weight: bold;
     margin-top: 10px;
+}
+
+#accessibility-controls {
+    margin-bottom: 20px; 
+    padding: 10px; 
+    background: #eef4fa; 
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 #entries-list {
@@ -113,9 +153,6 @@ button:hover { background-color: #004499; }
     justify-content: center;
 }
 
-
-
-
 #accessibility-controls, main, #entries-list li {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.3s ease;
@@ -124,6 +161,7 @@ button:hover { background-color: #004499; }
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
+/* --- TRYB CIEMNY --- */
 body.theme-dark {
     background-color: #2b2a2a !important;
     color: #e0e0e0 !important;
@@ -166,11 +204,7 @@ body.theme-dark strong, body.theme-dark label, body.theme-dark .entry-info {
     color: #ffffff !important;
 }
 
-body.theme-dark #yes-btn { background-color: #1b5e20 !important; }
-body.theme-dark #no-btn { background-color: #b71c1c !important; }
-
-
-
+/* --- WYSOKI KONTRAST --- */
 body.theme-high-contrast,
 body.theme-high-contrast main {
     background-color: #000000 !important;
@@ -207,6 +241,7 @@ body.theme-high-contrast button:hover {
 body.theme-high-contrast button:focus, body.theme-high-contrast input:focus {
     outline: 4px solid #ffff00 !important;
 }
+
 .qr-fullscreen {
     position: fixed;
     top: 0;
@@ -219,6 +254,10 @@ body.theme-high-contrast button:focus, body.theme-high-contrast input:focus {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+body.theme-dark .qr-fullscreen {
+    background: #121212;
 }
 
 .close-qr-btn {
